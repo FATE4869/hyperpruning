@@ -8,19 +8,9 @@ from args import Args
 from LE_calculation import *
 from util import *
 
-def continue_competition(args):
-    parser = argparse.ArgumentParser(description="continue the competition")
-    parser.add_argument("-ind", "--starting_idx", type=int, default=120000, required=False)
-    parser.add_argument("--max_evals", type=int, default=2, required=False)
-    parser.add_argument("--LE_based", type=str, default='True', required=False)
-    parser.add_argument("-e0", type=int, default=3, required=False, help="number of epochs for the first round")
-    parser.add_argument("-ei", type=int, default=3, required=False, help="number of epochs for the future rounds")
-    parser.add_argument("--initial_indices", nargs="*", type=int, default=None)
-    parser.add_argument("--hp_opt", type=str, default='tpe', required=False)
+def future_rounds(args):
 
-    args = parser.parse_args(args)
     LE_based = args.LE_based.lower()
-
     # epoch start with e0 + ei, and round start with 1
     e0 = args.e0
     ei = args.ei
@@ -28,7 +18,9 @@ def continue_competition(args):
     round = 1
 
     # loading result from the first round
-    trials = pickle.load(open(f'../trials/LSTM_PTB/LE_{args.hp_opt}_trials_num_{args.max_evals}_ind_{args.starting_idx}.pickle', 'rb'))
+    path = f'../trials/LSTM_PTB/LE_{args.hp_opt}_trials_num_{args.max_evals}_ind_{args.starting_idx}.pickle'
+    print(path)
+    trials = pickle.load(open(path, 'rb'))
     new_trials = collections.defaultdict(list)
     print(args.initial_indices)
 
@@ -42,9 +34,9 @@ def continue_competition(args):
                     vals.append(val)
                 new_trials[tuple(vals)] = trials[trial_key]
                 print(trials[trial_key]['args'].trial_num - args.starting_idx)
-    trials = new_trials
+        trials = new_trials
 
-    # print(trials)
+    print(trials)
     # stop until only two candidates are left
     while len(trials) > 2:
         previous_indices = []
@@ -128,6 +120,5 @@ def continue_competition(args):
     print(f"val losses: {val_losses}")
     print(f"test losses: {test_losses}")
 
-
-if __name__ == '__main__':
-    continue_competition(sys.argv[1:])
+# if __name__ == '__main__':
+#     main(sys.argv[1:])

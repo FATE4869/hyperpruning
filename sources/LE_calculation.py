@@ -81,10 +81,10 @@ def cal_LEs_from_trained_model(args, model, val_data, test_data, dataloader, tri
     # path_LEs_des = f'../LEs/RHN_PTB_full'
 
     # Load the saved model.
-    for i in range(0, epoch):
+    for i in range(0, epoch+1):
         start = time.time()
         path_saved = f"{path_models_des}/___e{i}___{trial_num}.pt"
-        # print(path_saved)
+        print(path_saved)
         if not os.path.exists(path_saved):
             continue
         else:

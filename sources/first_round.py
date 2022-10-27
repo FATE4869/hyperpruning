@@ -1,14 +1,13 @@
-import pickle
 import os
+import pickle
 from hyperopt import fmin, tpe, hp, Trials, STATUS_OK, STATUS_FAIL
 from train import train_main
 import collections
 from LE_calculation import *
 from util import *
 
-count = 10
 
-def main(num_epochs = 2, max_evals = 2, LE_based=False):
+def round1(num_epochs = 2, max_evals = 2, LE_based=False, count=100):
     space = {
         "sparse_init": hp.choice("sparse_init", ['uniform', 'ER']),
         "growth": hp.choice("growth", ['random']),
@@ -16,107 +15,103 @@ def main(num_epochs = 2, max_evals = 2, LE_based=False):
         "redistribution": hp.choice("redistribution", ['magnitude', 'nonzeros', 'none']),
         "death_rate": hp.randint('death_rate', 6), # Returns a random integer in the range [0, upper)
     }
-    trials = Trials()
+
+    pickle.dump(count, open('counter.txt', 'wb'))
 
     # define an objective function
     def objective(params):
         args = Args().args
+
+        # customize change args
         args.sparsity = 0.67
         args.density = 1 - args.sparsity
         args.epochs = num_epochs
         args.eval_batch_size = 20
         args.seed = 42
-        global count
-        count_local = count
+        # print(params)
+        # this allows change of global variable 'count'
+        # global count_local
+        count = pickle.load(open('counter.txt', 'rb'),)
         args.save = f'{count}'
-        # print(args.save)
+
+        # set methodological and non-methodological hyperparameter according to params selection.
         args.init = params['sparse_init']
         args.growth = params['growth']
         args.death = params['death']
         args.redistribution = params['redistribution']
         args.death_rate = 0.1 * (params['death_rate'] + 4)
+
         args.verbose = False
         print(f'{count}: {args}')
-        val_loss, test_loss = train_main(args)
+
+        # count += 1
+        # pickle.dump(count, open('counter.txt', 'wb'))
+        # return {"loss": 0, "status": STATUS_OK, 'val_loss': math.exp(0),
+        #         'test_loss': math.exp(0), 'args': args}
+
+        # val_loss, test_loss = train_main(args)
+        val_loss, test_loss = 0, 0
         if not LE_based:
             count += 1
+            pickle.dump(count, open('counter.txt', 'wb'))
             return {"loss": math.exp(val_loss), "status": STATUS_OK, 'val_loss': math.exp(val_loss),
                     'test_loss': math.exp(test_loss), 'args': args}
         else:
             args.trial_num = count
             args.eval_batch_size = 2
+            # calculate the LE
             LE_main(args)
-            # LE_main_rhn(args)
+            # calculate the LE distance
             LE_distance, _, _ = LE_distance_main(count, num_epochs=num_epochs)
             print(f"count: {count} \t LE_distance: {LE_distance}")
             count += 1
+            pickle.dump(count, open('counter.txt', 'wb'))
             return {"loss": LE_distance, "status": STATUS_OK, 'val_loss': math.exp(val_loss),
                     'test_loss': math.exp(test_loss), 'args': args}
 
+    trials = Trials()
     best = fmin(
         fn=objective,
         space=space,
         algo=tpe.suggest,
         max_evals=max_evals,
         trials=trials)
+    return trials
 
-    print(best)
-    print(trials)
-    trials_path = '../trials/'
-    count_local = 10
+
+# Simplifies the trials by creating a new dict called 'new_trials'
+# the key of new_trials is a list of [init, growth, death, redistribution, death_rate]
+# the value of new_trials is the result in trials which includes loss, args, etc
+def simplify_trials(trials, max_evals, LE_based, ind):
+    new_trials = collections.defaultdict(list)
+    for i in range(len(trials.results)):
+        death_rate = trials.results[i]['args'].death_rate
+        new_trial_key = [trials.results[i]['args'].init, trials.results[i]['args'].growth,
+                         trials.results[i]['args'].death, trials.results[i]['args'].redistribution,
+                         f'{death_rate:.3f}']
+        print(trials.results[i]['args'].save)
+        new_trials[tuple(new_trial_key)] = trials.results[i]
+    print(f'there are {len(new_trials)} unique candidates...')
+
+    trials_path = '../trials/LSTM_PTB'
     if not os.path.exists(trials_path):
         os.mkdir(trials_path)
+
+    # saving trials
     if LE_based:
         print("saving LE trials")
         print(os.path.exists(f'{trials_path}'))
-        pickle.dump(trials, open(f'{trials_path}/LE_tpe_trials_num_{max_evals}_ind_{count_local}.pickle', 'wb'))
+        pickle.dump(new_trials, open(f'{trials_path}/LE_tpe_trials_num_{max_evals}_ind_{ind}.pickle', 'wb'))
     else:
         print(os.path.exists(f'{trials_path}'))
         print("saving PPL trials")
-        pickle.dump(trials, open(f'{trials_path}/PPL_tpe_trials_num_{max_evals}_ind_{count_local}.pickle', 'wb'))
-    return trials
+        pickle.dump(new_trials, open(f'{trials_path}/PPL_tpe_trials_num_{max_evals}_ind_{ind}.pickle', 'wb'))
 
-if __name__ == '__main__':
-    num_epochs = 2
-    max_evals = 2
-    # LE_based = True
-    # trials = main(num_epochs, max_evals, LE_based)
-    # LE_distances = []
-    # val_losses = []
-    trials = pickle.load(open(f'../trials/stacked_LSTM/LE_tpe_trials_num_40_ind_18000.pickle', 'rb'))
-    new_trials = collections.defaultdict(dict)
-    for i in range(len(trials.results)):
-        print(i)
-        # if i > 8:
-        #     break
-        # else:
-        new_trial_key = []
-        new_trial_key.append(trials.results[i]['args'].init)
-        new_trial_key.append(trials.results[i]['args'].growth)
-        new_trial_key.append(trials.results[i]['args'].death)
-        new_trial_key.append(trials.results[i]['args'].redistribution)
-        death_rate = trials.results[i]['args'].death_rate
-        new_trial_key.append(f'{death_rate:.3f}')
-        print(trials.results[i]['args'].save[:-3])
-        trials.results[i]['args'].save = trials.results[i]['args'].save[:-3]
-        new_trials[tuple(new_trial_key)] = trials.results[i]
-    print(f'there are {len(new_trials)} unique candidates...')
-    pickle.dump(new_trials, open(f'../trials/LSTM_PTB/LE_tpe_trials_num_{40}_ind_{18000}.pickle', 'wb'))
-    # if LE_based:
-    #     for i in range(max_evals):
-    #         LE_distance = round(trials.results[i]['loss'], 2)
-    #         LE_distances.append(LE_distance)
-    #         print(LE_distance)
-    #     print("\nval_losses: ")
-    #     for i in range(max_evals):
-    #         val_loss = round(trials.results[i]['val_loss'], 2)
-    #         val_losses.append(val_loss)
-    #         print(val_loss)
-    #     print(f"LE_distances: {LE_distances}")
-    #     print(f"val_losses: {val_losses}")
-    # else:
-    #     for i in range(max_evals):
-    #         val_loss = round(trials.results[i]['val_loss'], 2)
-    #         val_losses.append(val_loss)
-    #         print(val_loss)
-    #         print(f"val_losses: {val_losses}")
+# if __name__ == '__main__':
+#     num_epochs = 1
+#     max_evals = 10
+#     count = 100
+#     LE_based = True
+#     count_local = count
+#     trials = round1(num_epochs, max_evals, LE_based, count=count)
+#     simplify_trials(trials=trials, max_evals=max_evals, ind=count_local, LE_based=LE_based)

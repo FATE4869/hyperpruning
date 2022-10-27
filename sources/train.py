@@ -141,7 +141,7 @@ def train_main(args):
                 val_loss2 = evaluate(val_data)
                 test_loss2 = evaluate(test_data)
                 print('-' * 89)
-                print(f'| end of epoch {epoch:3d} | time: {(time.time() - epoch_start_time):5.2f}s | '
+                print(f'| end of epoch {epoch+1:3d} | time: {(time.time() - epoch_start_time):5.2f}s | '
                       f'valid loss {val_loss2:5.2f} | valid ppl {math.exp(val_loss2):8.2f} | '
                       f'valid bpc {val_loss2 / math.log(2):8.3f} '
                       f'| test loss {test_loss2:5.2f} | test ppl {math.exp(test_loss2):8.2f} | '
@@ -166,7 +166,7 @@ def train_main(args):
                 val_loss = evaluate(val_data)
                 test_loss = evaluate(test_data)
                 print('-' * 89)
-                print(f'| end of epoch {epoch:3d} | time: {(time.time() - epoch_start_time):5.2f}s | '
+                print(f'| end of epoch {epoch+1:3d} | time: {(time.time() - epoch_start_time):5.2f}s | '
                       f'valid loss {val_loss:5.2f} | valid ppl {math.exp(val_loss):8.2f} | '
                       f'valid bpc {val_loss / math.log(2):8.3f} '
                       f'| test loss {test_loss:5.2f} | test ppl {math.exp(test_loss):8.2f} | '
@@ -192,7 +192,7 @@ def train_main(args):
 
                 best_val_loss.append(val_loss)
 
-            print(f"PROGRESS: ({epoch} / {starting_epoch + args.epochs - 1}) = {epoch / (starting_epoch + args.epochs - 1) * 100}%")
+            print(f"PROGRESS: ({epoch+1} / {starting_epoch + args.epochs}) = {(epoch+1) / (starting_epoch + args.epochs) * 100}%")
 
 
 
