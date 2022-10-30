@@ -69,7 +69,7 @@ class Args():
         self.args = args
         self.sparse()
         # self.rigL()
-
+        self.selfish_rnn()
 
     def sparse(self):
         self.args.fix = False
