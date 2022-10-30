@@ -113,7 +113,7 @@ def perplexity_compare(names, indices, num_epochs, labels=None, indices_candidat
 
 def LE_loading(folder_name, trial_index, num_epochs=None, epochs=None):
     if num_epochs is not None:
-        epochs = range(num_epochs+1)
+        epochs = np.arange(num_epochs+1)
     print(f'epochs calculating LS distance: {epochs}')
     val_ppls = []
     test_ppls = []
@@ -129,7 +129,8 @@ def LE_loading(folder_name, trial_index, num_epochs=None, epochs=None):
                 test_ppl = val_ppl
             if i == 0:
                 LEs = LE
-        LEs = torch.cat([LEs, LE])
+            else:
+                LEs = torch.cat([LEs, LE])
         val_ppls.append(val_ppl)
         test_ppls.append(test_ppl)
 
@@ -177,11 +178,13 @@ def LE_distance_main(trial_num, num_epochs, epoch=None, last_epoch_ref=True):
 
     divider_indices = [0]
     LE, val_ppls, test_ppl = LE_loading(folder_names[0], indices[0], num_epochs)
+    # LE_full, val_ppls_full, _ = LE_loading(folder_names[1], indices[1], epochs=[49])
+    # LE_full, val_ppls_full, _ = LE_loading(folder_names[1], indices[1], num_epochs=49)
     LE_full, val_ppls_full, _ = LE_loading(folder_names[1], indices[1], num_epochs)
     divider_indices.append(LE_full.shape[0])
     LEs = torch.cat([LE_full, LE])
     divider_indices.append(LEs.shape[0])
-
+    print(f"divider_indices: {divider_indices}")
     distance = tsne(LEs, dim=2, divider_indices=divider_indices, use_tsne=False)
     return distance, val_ppls[-1], val_ppls_full[-1]
     # return 0, 0, 0
@@ -229,15 +232,15 @@ def generate_dic():
     return info_dic
 
 if __name__ == '__main__':
-    trial_nums = [10]
-    epoch = 2
+    trial_nums = [18015, 18021, 18022]
+    epoch = 9
     val_ppls = []
     distances = []
     for trial_num in trial_nums:
         distance, val_ppl, val_ppl_full = LE_distance_main(trial_num, num_epochs=epoch)
         print(f'Trial Num: {trial_num}, at epoch: {epoch} --- > ref val perplexity: {val_ppl_full:.1f}    val perplexity: {val_ppl:.1f}   distance: {distance:.4f}')
-        val_ppls.append(val_ppl)
-        distances.append(distance)
+        # val_ppls.append(val_ppl)
+        # distances.append(distance)
     # val = np.sort(val_ppls)
     # indices = np.argsort(val_ppls)
     # distances_sorted = np.sort(distances)
