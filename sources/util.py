@@ -113,7 +113,8 @@ def perplexity_compare(names, indices, num_epochs, labels=None, indices_candidat
 
 def LE_loading(folder_name, trial_index, num_epochs=None, epochs=None):
     if num_epochs is not None:
-        epochs = range(num_epochs)
+        epochs = range(num_epochs+1)
+    print(f'epochs calculating LS distance: {epochs}')
     val_ppls = []
     test_ppls = []
     for i, epoch in enumerate(epochs):

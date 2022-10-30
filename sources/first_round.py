@@ -16,7 +16,7 @@ def round1(num_epochs = 2, max_evals = 2, LE_based=False, count=100):
         "death_rate": hp.randint('death_rate', 6), # Returns a random integer in the range [0, upper)
     }
 
-    pickle.dump(count, open('counter.txt', 'wb'))
+    pickle.dump(count, open(f'counter_{count}.txt', 'wb'))
 
     # define an objective function
     def objective(params):
@@ -31,8 +31,8 @@ def round1(num_epochs = 2, max_evals = 2, LE_based=False, count=100):
         # print(params)
         # this allows change of global variable 'count'
         # global count_local
-        count = pickle.load(open('counter.txt', 'rb'),)
-        args.save = f'{count}'
+        count_local = pickle.load(open(f'counter_{count}.txt', 'rb'),)
+        args.save = f'{count_local}'
 
         # set methodological and non-methodological hyperparameter according to params selection.
         args.init = params['sparse_init']
@@ -42,30 +42,29 @@ def round1(num_epochs = 2, max_evals = 2, LE_based=False, count=100):
         args.death_rate = 0.1 * (params['death_rate'] + 4)
 
         args.verbose = False
-        print(f'{count}: {args}')
+        print(f'{count_local}: {args}')
 
         # count += 1
         # pickle.dump(count, open('counter.txt', 'wb'))
         # return {"loss": 0, "status": STATUS_OK, 'val_loss': math.exp(0),
         #         'test_loss': math.exp(0), 'args': args}
 
-        # val_loss, test_loss = train_main(args)
-        val_loss, test_loss = 0, 0
+        val_loss, test_loss = train_main(args)
         if not LE_based:
-            count += 1
-            pickle.dump(count, open('counter.txt', 'wb'))
+            count_local += 1
+            pickle.dump(count_local, open(f'counter_{count}.txt', 'wb'))
             return {"loss": math.exp(val_loss), "status": STATUS_OK, 'val_loss': math.exp(val_loss),
                     'test_loss': math.exp(test_loss), 'args': args}
         else:
-            args.trial_num = count
+            args.trial_num = count_local
             args.eval_batch_size = 2
             # calculate the LE
             LE_main(args)
             # calculate the LE distance
-            LE_distance, _, _ = LE_distance_main(count, num_epochs=num_epochs)
-            print(f"count: {count} \t LE_distance: {LE_distance}")
-            count += 1
-            pickle.dump(count, open('counter.txt', 'wb'))
+            LE_distance, _, _ = LE_distance_main(count_local, num_epochs=num_epochs)
+            print(f"count: {count_local} \t LE_distance: {LE_distance}")
+            count_local += 1
+            pickle.dump(count_local, open(f'counter_{count}.txt', 'wb'))
             return {"loss": LE_distance, "status": STATUS_OK, 'val_loss': math.exp(val_loss),
                     'test_loss': math.exp(test_loss), 'args': args}
 
@@ -76,6 +75,7 @@ def round1(num_epochs = 2, max_evals = 2, LE_based=False, count=100):
         algo=tpe.suggest,
         max_evals=max_evals,
         trials=trials)
+
     return trials
 
 
@@ -108,10 +108,11 @@ def simplify_trials(trials, max_evals, LE_based, ind):
         pickle.dump(new_trials, open(f'{trials_path}/PPL_tpe_trials_num_{max_evals}_ind_{ind}.pickle', 'wb'))
 
 # if __name__ == '__main__':
-#     num_epochs = 1
-#     max_evals = 10
-#     count = 100
+#     num_epochs = 3
+#     max_evals = 40
+#     count = 18000
 #     LE_based = True
 #     count_local = count
-#     trials = round1(num_epochs, max_evals, LE_based, count=count)
-#     simplify_trials(trials=trials, max_evals=max_evals, ind=count_local, LE_based=LE_based)
+    # trials = round1(num_epochs, max_evals, LE_based, count=count)
+    # trials = pickle.load(open('../trials/LE_tpe_trials_num_40_ind_18000.pickle', 'rb'))
+    # simplify_trials(trials=trials, max_evals=max_evals, ind=count_local, LE_based=LE_based)

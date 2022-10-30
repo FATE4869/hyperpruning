@@ -9,10 +9,8 @@ def ed(param_name, default=None):
 class Args():
     def __init__(self):
         parser = argparse.ArgumentParser(description='Network Pruning')
-        parser.add_argument("--local_rank", type=int, default=0)
+        # parser.add_argument("--local_rank", type=int, default=0)
         args = parser.parse_args()
-
-
         # general hyper-parameters
         use_cuda = torch.cuda.is_available()
         args.device = torch.device("cuda" if use_cuda else "cpu")

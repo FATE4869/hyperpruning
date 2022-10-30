@@ -36,7 +36,7 @@ def future_rounds(args):
                 print(trials[trial_key]['args'].trial_num - args.starting_idx)
         trials = new_trials
 
-    print(trials)
+    # print(trials)
     # stop until only two candidates are left
     while len(trials) > 2:
         previous_indices = []
@@ -45,6 +45,7 @@ def future_rounds(args):
         # sort trials based on their distance/loss
         for trial_key in trials:
             distances[trials[trial_key]['loss']] = trial_key
+            print(trials[trial_key]['loss'])
             previous_indices.append(trials[trial_key]['args'].save)
         distances_sorted = dict(sorted(distances.items()))
         new_trials = collections.defaultdict(list)
