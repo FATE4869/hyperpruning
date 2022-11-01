@@ -60,7 +60,7 @@ class Args():
         args.verbose = False
 
         # optimizer hyper-parameters
-        args.lr = 15  # initial learning rate
+        args.lr = 40  # initial learning rate
         args.clip = 0.25  # gradient clipping
         args.optimizer = 'sgd'
         args.momentum = 0.9  # SGD momentum (default: 0.9)
