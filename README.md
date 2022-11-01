@@ -4,6 +4,7 @@ This repository is the official implementation of Hyperpruning:
 
 Hyperpruning first generates an initial candidate pool based on hyperparameter optimization algorithms (HPO) with LS-based or loss-based metric. It then iteratively excludes candidates based on LS distance or loss. Remaining candidates are extensively trained until their accuracies converge.
 
+Some of our code (sparse_rnn_core.py and Sparse_ASGD.py) are adapted from [here](https://github.com/Shiweiliuiiiiiii/Selfish-RNN).
 
 ![](Hyperpruning.png)
 
