@@ -16,12 +16,11 @@ def main(args):
     parser.add_argument("--hp_opt", type=str, default='tpe', required=False)
     parser.add_argument("--initial_pool", type=bool, default=False, required=False)
     parser.add_argument("--evaluate", type=str, default='../models/LSTM_PTB_pruned/___e100___136.pt', required=False)
-
     code_args = parser.parse_args(args)
     print(f"code_args: {code_args}")
-    count = code_args.starting_idx
-
-    # just evaluating the given model without running hyperpruning
+    # count = code_args.starting_idx
+    #
+    # # just evaluating the given model without running hyperpruning
     if code_args.evaluate:
         args = Args().args
         args.evaluate = code_args.evaluate
