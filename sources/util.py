@@ -179,8 +179,8 @@ def LE_distance_main(trial_num, num_epochs, epoch=None, last_epoch_ref=True):
     divider_indices = [0]
     LE, val_ppls, test_ppl = LE_loading(folder_names[0], indices[0], num_epochs)
     # LE_full, val_ppls_full, _ = LE_loading(folder_names[1], indices[1], epochs=[49])
-    # LE_full, val_ppls_full, _ = LE_loading(folder_names[1], indices[1], num_epochs=49)
-    LE_full, val_ppls_full, _ = LE_loading(folder_names[1], indices[1], num_epochs)
+    LE_full, val_ppls_full, _ = LE_loading(folder_names[1], indices[1], num_epochs=49)
+    # LE_full, val_ppls_full, _ = LE_loading(folder_names[1], indices[1], num_epochs)
     divider_indices.append(LE_full.shape[0])
     LEs = torch.cat([LE_full, LE])
     divider_indices.append(LEs.shape[0])
