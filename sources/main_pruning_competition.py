@@ -35,7 +35,11 @@ def future_rounds(args):
                 new_trials[tuple(vals)] = trials[trial_key]
                 print(trials[trial_key]['args'].trial_num - args.starting_idx)
         trials = new_trials
-
+    else:
+        args.initial_indices = []
+        for trial_key in trials:
+            args.initial_indices.append(trials[trial_key]['args'].trial_num - args.starting_idx)
+        print(args.initial_indices)
     # print(trials)
     # stop until only two candidates are left
     while len(trials) > 2:

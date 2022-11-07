@@ -16,11 +16,11 @@ def main(args):
     code_args = parser.parse_args(args)
     print(f"code_args: {code_args}")
     count = code_args.starting_idx
-    # code_args.initial_indices = [21]
-    trials = round1(num_epochs=code_args.e0, max_evals=code_args.max_evals,
-                    LE_based=code_args.LE_based, count=count)
-    simplify_trials(trials=trials, max_evals=code_args.max_evals,
-                    ind=code_args.starting_idx, LE_based=code_args.LE_based)
+    code_args.initial_indices = [3]
+    # trials = round1(num_epochs=code_args.e0, max_evals=code_args.max_evals,
+    #                 LE_based=code_args.LE_based, count=count)
+    # simplify_trials(trials=trials, max_evals=code_args.max_evals,
+    #                 ind=code_args.starting_idx, LE_based=code_args.LE_based)
     future_rounds(code_args)
 
 if __name__ == '__main__':

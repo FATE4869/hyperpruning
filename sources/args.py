@@ -47,7 +47,6 @@ class Args():
         # args.tied = True
         # args.couple = True
 
-
         args.log_interval = 200
         # args.evaluate = '../models/lstm_PTB/___e2___00000.pt'
         args.evaluate = ''  # path to pre-trained model (default: none)
