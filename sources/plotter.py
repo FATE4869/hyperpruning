@@ -2,32 +2,116 @@ import matplotlib.pyplot as plt
 import torch
 import numpy as np
 from scipy import stats
+import pickle
+from LE_calculation import *
+from util import *
+import os
 
-def main():
-    early_ppl = [186.39, 173.15, 187.13, 172.16, 173.1, 172.6, 180.59, 174.73, 172.85, 172.76, 176.45, 173.4, 179.57, 173.65, 183.46, 172.24, 185.06, 172.02, 173.79, 173.95, 179.46, 178.66, 179.77, 180.48, 179.14, 172.76, 180.08, 177.33, 184.65, 172.81, 177.17, 184.06, 179.96, 177.63, 174.27, 173.51, 186.48, 176.19, 174.03, 176.07]
-    early_LS0 = [110.56, 103.85, 117.04, 107.05, 113.81, 115.66, 100.18, 114.77, 107.69, 102.75, 103.81, 106.46, 101.63, 104.51, 108.05, 107.64, 115.07, 108.11, 105.61, 106.02, 101.74, 100.63, 101.1, 101.07, 100.79, 113.91, 101.28, 100.76, 111.99, 115.03, 101.5, 103.78, 103.53, 101.95, 102.51, 114.4, 117.29, 102.4, 114.62, 101.18]
-    early_LS1 = [103.85, 100.18, 102.75, 103.81, 101.63, 104.51, 101.74, 100.63, 101.1, 101.07, 100.79, 101.28, 100.76, 101.5, 103.78, 103.53, 101.95, 102.51, 102.4, 101.18]
 
-    mid_ppl  =[124.11, 109.36, 122.35, 105.28, 111.91, 113.44, 120.74, 122.44, 106.88, 107.1, 115.32, 107.11, 121.95, 108.16, 121.92, 106.97, 122.41, 105.57, 109.16, 106.97, 121.22, 121.78, 120.71, 121.02, 122.61, 121.3, 122.54, 115.08, 124.25, 121.98, 113.05, 135.02, 122.1, 114.38, 108.99, 121.07, 122.35, 110.25, 121.91, 114.55]
-    mid_LS = [211.17, 180.61, 207.49, 192.64, 196.01, 210.68, 200.41, 213.14, 206.82, 189, 209.58, 199.25, 200.4, 199.26, 205.33, 201.4, 207.5, 200.65, 200.19, 192.5, 200.74, 201.86, 199.86, 201.15, 201.39, 213.1, 199.66, 199.61, 212.32, 214.23, 179.98, 203.76, 207.36, 197.87, 181.39, 213.44, 207.49, 199.99, 213.59, 200.62]
-    late_ppl0 = [83.47, 72.68, 99.51, 73.7, 73.82, 74.61, 73.35, 74.11, 74.65, 74.88, 73.91, 74.52, 73.95, 74.55, 90.01, 74.91, 83.38, 74.94, 74.52, 74.46, 73.58, 73.56, 73.21, 73.18, 73.35, 74.07, 73.06, 73.87, 81.47, 74.31, 72.36, 83.29, 74.13, 73.87, 72.61, 74.07, 89.16, 74.19, 73.98, 73.74]
-    late_ppl1 = [72.68, 73.35, 74.88, 73.91, 73.95, 74.55, 73.58, 73.56, 73.21, 73.18, 73.35, 73.06, 73.87, 72.36, 83.29, 74.13, 73.87, 72.61, 74.19, 73.74]
+def scatter_plot():
+    indices = [102, 103, 104, 105, 106, 107, 108, 109, 111, 112, 113, 114, 115, 116, 117, 118, 119, 122, 130, 132, 133, 135, 136, 137, 138, 139]
+    epochs = [3, 15]
 
-    # late_ppl_idx_sorted = np.argsort(late_ppl)
-    # early_ppl_idx_sorted = np.argsort(early_ppl)
-    print(stats.spearmanr(early_LS0, late_ppl0))
-    print(stats.spearmanr(early_LS1, late_ppl1))
-    # print(stats.spearmanr(mid_LS, late_ppl1))
-    # plt.figure()
-    # plt.subplot(221)
-    # plt.scatter(late_ppl, early_ppl)
-    # plt.subplot(222)
-    # plt.scatter(late_ppl, mid_ppl)
-    #
-    # plt.subplot(223)
-    # plt.scatter(late_ppl, early_LS)
-    # plt.subplot(224)
-    # plt.scatter(late_ppl, mid_LS)
-    # plt.show()
+    early_ppl = []
+    early_LS = []
+    mid_ppl = []
+    mid_LS = []
+    for index in indices:
+        path = f'../LEs/LSTM_PTB_pruned/___e{epochs[0]}___{index}.pickle'
+        LEs = pickle.load(open(path, 'rb'))
+        early_ppl.append(LEs['test_perplexity'])
+
+        path = f'../LEs/LSTM_PTB_pruned/___e{epochs[1]}___{index}.pickle'
+        temp = epochs[1]
+        while not os.path.exists(path):
+            temp -= 1
+            path = f'../LEs/LSTM_PTB_pruned/___e{temp}___{index}.pickle'
+        LEs = pickle.load(open(path, 'rb'))
+        mid_ppl.append(LEs['test_perplexity'])
+
+        LE_distance, _, _ = LE_distance_main(index, num_epochs=epochs[0])
+        early_LS.append(LE_distance)
+
+        LE_distance, _, _ = LE_distance_main(index, num_epochs=epochs[1])
+        mid_LS.append(LE_distance)
+    early_ppl_normalized = [(i-min(early_ppl)) / (max(early_ppl) - min(early_ppl)) for i in early_ppl]
+    mid_ppl_normalized = [(i - min(mid_ppl)) / (max(mid_ppl) - min(mid_ppl)) for i in mid_ppl]
+    early_LS_normalized = [(i - min(early_LS)) / (max(early_LS) - min(early_LS)) for i in early_LS]
+    mid_LS_normalized = [(i - min(mid_LS)) / (max(mid_LS) - min(mid_LS)) for i in mid_LS]
+
+    late_ppl0 = [73.26, 73.54, 72.87, 79.77, 82.68, 71.89, 73.02, 80.65, 72.2, 72.15, 82.52, 81.77, 89.46, 72.71, 80.37, 79.71, 71.06, 71.75, 70.57, 70.87, 72.05, 70.89, 69.73, 71.94, 72.02, 71.12]
+
+
+    print(stats.spearmanr(early_ppl_normalized, late_ppl0))
+    print(stats.spearmanr(early_LS_normalized, late_ppl0))
+    print(stats.spearmanr(mid_ppl_normalized, late_ppl0))
+    print(stats.spearmanr(mid_LS_normalized, late_ppl0))
+
+    plt.figure(1, figsize=(3, 2))
+    plt.scatter(late_ppl0, early_ppl_normalized)
+    plt.xlim([69, 91])
+    plt.ylim([-.1, 1.1])
+    plt.xticks([70, 75, 80, 85, 90], [])
+    plt.yticks([0, 0.5, 1], [])
+    plt.title('early ppl vs. late ppl')
+    plt.show()
+
+    plt.figure(2, figsize=(3, 2))
+    plt.scatter(late_ppl0, mid_ppl_normalized)
+    plt.xlim([69, 91])
+    plt.ylim([-.1, 1.1])
+    plt.xticks([70, 75, 80, 85, 90], [])
+    plt.yticks([0, 0.5, 1], [])
+    plt.title('mid ppl vs. late ppl')
+    plt.show()
+
+    plt.figure(3, figsize=(3, 2))
+    plt.scatter(late_ppl0, early_LS_normalized)
+    plt.xlim([69, 91])
+    plt.ylim([-.1, 1.1])
+    plt.xticks([70, 75, 80, 85, 90], [])
+    plt.yticks([0, 0.5, 1], [])
+    plt.title('early LS vs. late ppl')
+    plt.show()
+
+    plt.figure(4, figsize=(3, 2))
+    plt.scatter(late_ppl0, mid_LS_normalized)
+    plt.xlim([69, 91])
+    plt.ylim([-.1, 1.1])
+    plt.xticks([70, 75, 80, 85, 90], [])
+    plt.yticks([0, 0.5, 1], [])
+    plt.title('mid LS vs. late ppl')
+    plt.show()
+
+def LS_space():
+    folder_names = ['LEs/LSTM_PTB_pruned', 'LEs/LSTM_PTB_full']
+    indices = [136, 161]
+    num_epochs = 100
+    divider_indices = [0]
+    LE, val_ppls, test_ppl = LE_loading(folder_names[0], indices[0], num_epochs)
+    LE_full, val_ppls_full, _ = LE_loading(folder_names[1], indices[1], num_epochs)
+    divider_indices.append(LE_full.shape[0])
+    LEs = torch.cat([LE_full, LE])
+    divider_indices.append(LEs.shape[0])
+    print(f"divider_indices: {divider_indices}")
+    distance = tsne(LEs, dim=2, divider_indices=divider_indices, use_tsne=False, plot=True, trial_nums=indices)
+
+def epochs_vs_ppl():
+    index = 136
+    num_epochs = 100
+    ppls = []
+    for epoch in range(num_epochs):
+        path = f'../LEs/LSTM_PTB_pruned/___e{epoch}___{index}.pickle'
+        if os.path.exists(path):
+            LEs = pickle.load(open(path, 'rb'))
+            ppl = LEs['test_perplexity']
+        ppls.append(ppl)
+    plt.figure(1)
+    plt.plot(range(5, num_epochs), ppls[5:])
+    plt.show()
+    # print(len(ppls))
+
 if __name__ == '__main__':
-    main()
+    # scatter_plot()
+    # LS_space()
+    epochs_vs_ppl()

@@ -15,25 +15,26 @@ def LE_plot(x_embedded, divider_indices, trial_nums):
     # colormap = cmx.Set1.colors
     colors = cmx.rainbow(np.linspace(0, 1, len(divider_indices) - 2))
     plt.figure()
-    trial_nums = [100000] + trial_nums
+    # trial_nums = [100000] + trial_nums
     # colors = ['g', 'b', 'y', 'cyan']
-    plt.scatter(x_embedded[:, 0], x_embedded[:, 1], color='r')
-    for i, indices in enumerate(divider_indices):
-        if i == 1:
-            plt.plot(x_embedded[divider_indices[i-1]:divider_indices[i], 0],
-                        x_embedded[divider_indices[i-1]:divider_indices[i], 1],
-                        color='k',  linewidth=5, label=trial_nums[i-1])
-        elif i != 0:
-            plt.plot(x_embedded[divider_indices[i-1]:divider_indices[i], 0],
-                        x_embedded[divider_indices[i-1]:divider_indices[i], 1],
-                        color=colors[i-2],  linewidth=5, label=trial_nums[i-1])
+    # plt.scatter(x_embedded[:, 0], x_embedded[:, 1], color='r')
+    cmaps = ['gist_gray', 'winter', 'autumn']
 
     for i, indices in enumerate(divider_indices):
-        if i != 0:
-            plt.scatter(x_embedded[divider_indices[i - 1], 0],
-                        x_embedded[divider_indices[i - 1], 1],
-                        color='k')
-    plt.legend()
+        if i == 1:
+            c=range(divider_indices[i] - divider_indices[i-1])
+            plt.scatter(x_embedded[divider_indices[i-1]:divider_indices[i], 0],
+                        x_embedded[divider_indices[i-1]:divider_indices[i], 1],
+                        c = c, s = 100, cmap = cmaps[0])
+        elif i != 0:
+            c=range(divider_indices[i] - divider_indices[i-1])
+            plt.scatter(x_embedded[divider_indices[i-1]:divider_indices[i], 0],
+                        x_embedded[divider_indices[i-1]:divider_indices[i], 1],
+                        c = c, s = 100, cmap = cmaps[i-1])
+    plt.xlim([100, 400])
+    plt.ylim([150, 320])
+    plt.xticks([100, 200, 300, 400], [])
+    plt.yticks([200, 300], [])
     plt.show()
 
 def return_candidates(distances, num_trials, starting_epoch=3, incremental_epoch=2):
@@ -185,7 +186,11 @@ def LE_distance_main(trial_num, num_epochs, epoch=None, last_epoch_ref=True):
     LEs = torch.cat([LE_full, LE])
     divider_indices.append(LEs.shape[0])
     print(f"divider_indices: {divider_indices}")
-    distance = tsne(LEs, dim=2, divider_indices=divider_indices, use_tsne=False)
+
+    # distance = tsne(LEs, dim=2, divider_indices=divider_indices, use_tsne=False)
+    # L2 distance on LS
+    distance = np.linalg.norm(LE_full[-1] - LE[-1])
+
     return distance, val_ppls[-1], val_ppls_full[-1]
     # return 0, 0, 0
 

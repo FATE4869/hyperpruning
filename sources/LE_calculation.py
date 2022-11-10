@@ -145,12 +145,13 @@ if __name__ == "__main__":
     args = Args().args
     args.data = '../dataset/PTB/penn/'
     args.save = '00000'
-    args.epochs = 2
+    args.epochs = 100
     args.eval_batch_size = 2
 
 
     # trial_nums = ['100002', '100005', '100006', '100007', '100012']
-    trial_nums = ['00000']
+    # trial_nums = ['117']
+    trial_nums = ['136']
     for trial_num in trial_nums:
         args.trial_num = trial_num
         LE_main(args)
